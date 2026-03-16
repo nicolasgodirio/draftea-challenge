@@ -1,3 +1,6 @@
+# RFC
+https://docs.google.com/document/d/1FwN9hPQhXN2xDbtEFrMXEQSoKp1V1plQ4tdEMNyWdJY/edit?usp=sharing
+
 # Draftea Payment System
 
 A microservices-based payment system built in Go, structured as individual AWS Lambda functions. The system is composed of three independent services that share a single PostgreSQL database.
@@ -5,18 +8,28 @@ A microservices-based payment system built in Go, structured as individual AWS L
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      API Gateway                        │
-└──────────────┬──────────────┬──────────────┬────────────┘
-               │              │              │
-       POST /payments   GET /balances  GET /transactions
-               │              │              │
-     ┌─────────▼──────┐ ┌─────▼──────┐ ┌────▼────────────┐
-     │ createpayment  │ │ getbalances│ │ gettransactions │
-     └─────────┬──────┘ └─────┬──────┘ └────┬────────────┘
-               │              │              │
-               └──────────────▼──────────────┘
-                          PostgreSQL
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                              API Gateway                                          │
+└───────────────┬───────────────────────────┬───────────────────────────┬───────────┘
+                │                           │                           │
+                │                           │                           │
+      POST /payments                GET /balances                GET /transactions
+                │                           │                           │
+                ▼                           ▼                           ▼
+      ┌─────────────────┐         ┌─────────────────┐         ┌──────────────────┐
+      │  createpayment  │         │   getbalances   │         │  gettransactions │
+      └───────┬─────────┘         └────────┬────────┘         └─────────┬────────┘
+              │                            │                            │
+              │                            │                            │
+              │   ┌────────────────┐       │                            │
+              │──►│   PostgreSQL   │◄──────┴────────────────────────────┘
+              │   └────────────────┘
+              │
+              │ publish event
+              ▼
+      ┌────────────────┐
+      │     Kafka      │
+      └────────────────┘
 ```
 
 ### Services
